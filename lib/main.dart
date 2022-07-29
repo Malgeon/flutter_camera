@@ -1,8 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:developer';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
@@ -42,6 +47,8 @@ class TakePictureScreen extends StatefulWidget {
 class TakePictureScreenState extends State<TakePictureScreen> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
+
+  late File _storedImage;
 
   @override
   void initState() {
@@ -98,6 +105,29 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             // where it was saved.
             final image = await _controller.takePicture();
 
+            // _storedImage = File(image.path);
+
+            // final appDir = await getApplicationDocumentsDirectory();
+            // log("app = $appDir");
+            final fileName = path.basename(image.path);
+            // log("fileName = $fileName");
+            // final savedFile = await _storedImage.copy('$appDir/$fileName');
+            //
+            await _getStoragePermission();
+            //
+            final imageFile = File(image.path);
+            // final directory = await getExternalStorageDirectories();
+            // final newFilePath = "${directory?.first.path}/test.jpg";
+            // File copyFile = await imageFile.copy(newFilePath);
+
+            const newFilePath = "/storage/emulated/0/Pictures/temp";
+            final folder = Directory("/storage/emulated/0/Pictures/temp");
+            if(!await folder.exists()){
+              await folder.create(recursive: true);
+            }
+
+            File copyFile = await imageFile.copy('$newFilePath/$fileName');
+
             if (!mounted) return;
 
             // If the picture was taken, display it on a new screen.
@@ -119,6 +149,20 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       ),
     );
   }
+
+  Future _getStoragePermission() async {
+    if (await Permission.storage.request().isGranted) {
+      setState(() {
+
+      });
+    } else if (await Permission.storage.request().isPermanentlyDenied) {
+      await openAppSettings();
+    } else if (await Permission.storage.request().isDenied) {
+      setState(() {
+
+      });
+    }
+  }
 }
 
 // A widget that displays the picture taken by the user.
@@ -137,3 +181,5 @@ class DisplayPictureScreen extends StatelessWidget {
     );
   }
 }
+
+
