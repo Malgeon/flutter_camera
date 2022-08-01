@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:developer';
 
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:path/path.dart' as path;
@@ -142,7 +143,9 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             );
           } catch (e) {
             // If an error occurs, log the error to the console.
-            print(e);
+            if (kDebugMode) {
+              print(e);
+            }
           }
         },
         child: const Icon(Icons.camera_alt),
